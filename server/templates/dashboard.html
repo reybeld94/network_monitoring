@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Monitoreo - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .agents-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .agent-card {
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: #fafbfc;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .agent-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .agent-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .agent-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .info-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .software-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .software-section {
+            background: white;
+            border: 1px solid #e0e6ed;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .software-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .software-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.5rem;
+            border-radius: 3px;
+        }
+
+        .office-icon { background-color: #FF6B35; }
+        .solidworks-icon { background-color: #FF0000; }
+        .autocad-icon { background-color: #0073E6; }
+
+        .software-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .license-item {
+            background: #f8f9fa;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            border-left: 3px solid #28a745;
+        }
+
+        .license-item.inactive {
+            border-left-color: #dc3545;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sistema de Monitoreo</h1>
+        <p>Dashboard de Agentes y Licencias</p>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalAgents">0</div>
+                <div class="stat-label">Agentes Conectados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="officeInstalls">0</div>
+                <div class="stat-label">Instalaciones Office</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="cadInstalls">0</div>
+                <div class="stat-label">Software CAD</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeBackups">0</div>
+                <div class="stat-label">Backups Detectados</div>
+            </div>
+        </div>
+
+        <div class="agents-section">
+            <h2 class="section-title">Agentes Monitoreados</h2>
+            <div id="agentsContainer">
+                <div class="loading">Cargando información de agentes...</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadData()" title="Actualizar datos">
+        ↻
+    </button>
+
+    <script>
+        let refreshInterval;
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function isAgentOnline(lastSeen) {
+            const lastSeenDate = new Date(lastSeen);
+            const now = new Date();
+            const diffMinutes = (now - lastSeenDate) / (1000 * 60);
+            return diffMinutes < 5; // Considera online si reportó en los últimos 5 minutos
+        }
+
+        async function loadData() {
+            try {
+                // Cargar agentes
+                const agentsResponse = await fetch('/api/agents');
+                const agentsData = await agentsResponse.json();
+
+                // Cargar datos de monitoreo
+                const monitoringResponse = await fetch('/api/backups');
+                const monitoringData = await monitoringResponse.json();
+
+                updateStats(agentsData, monitoringData);
+                updateAgentsDisplay(agentsData, monitoringData);
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                document.getElementById('agentsContainer').innerHTML =
+                    '<div class="no-data">Error cargando datos. Verifique la conexión con el servidor.</div>';
+            }
+        }
+
+        function updateStats(agentsData, monitoringData) {
+            const totalAgents = agentsData.agents.length;
+            let officeInstalls = 0;
+            let cadInstalls = 0;
+            let activeBackups = 0;
+
+            Object.values(monitoringData.monitoring_data || {}).forEach(data => {
+                if (data.office_info && data.office_info.installed) {
+                    officeInstalls++;
+                }
+                if (data.cad_info) {
+                    if (data.cad_info.solidworks && data.cad_info.solidworks.installed) cadInstalls++;
+                    if (data.cad_info.autocad && data.cad_info.autocad.installed) cadInstalls++;
+                }
+                if (data.backup_info && data.backup_info.status !== 'unknown') {
+                    activeBackups++;
+                }
+            });
+
+            document.getElementById('totalAgents').textContent = totalAgents;
+            document.getElementById('officeInstalls').textContent = officeInstalls;
+            document.getElementById('cadInstalls').textContent = cadInstalls;
+            document.getElementById('activeBackups').textContent = activeBackups;
+        }
+
+        function updateAgentsDisplay(agentsData, monitoringData) {
+            const container = document.getElementById('agentsContainer');
+
+            if (agentsData.agents.length === 0) {
+                container.innerHTML = '<div class="no-data">No hay agentes conectados</div>';
+                return;
+            }
+
+            const agentsHTML = agentsData.agents.map(agent => {
+                const monitoringInfo = monitoringData.monitoring_data[agent.agent_id] || {};
+                const isOnline = isAgentOnline(agent.last_seen);
+
+                return `
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-name">${agent.hostname}</div>
+                            <div class="agent-status ${isOnline ? 'status-online' : 'status-offline'}">
+                                ${isOnline ? 'En línea' : 'Desconectado'}
+                            </div>
+                        </div>
+
+                        <div class="agent-info">
+                            <div class="info-item">
+                                <div class="info-label">Sistema Operativo</div>
+                                <div class="info-value">${agent.os}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Dirección IP</div>
+                                <div class="info-value">${agent.ip}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Última Conexión</div>
+                                <div class="info-value">${formatDate(agent.last_seen)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">ID del Agente</div>
+                                <div class="info-value" style="font-size: 0.8rem;">${agent.agent_id}</div>
+                            </div>
+                        </div>
+
+                        ${generateSoftwareInfo(monitoringInfo)}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = agentsHTML;
+        }
+
+        function generateSoftwareInfo(monitoringInfo) {
+            let softwareHTML = '<div class="software-grid">';
+
+            // Información de Office
+            const officeInfo = monitoringInfo.office_info || {};
+            softwareHTML += `
+                <div class="software-section">
+                    <div class="software-title">
+                        <div class="software-icon office-icon"></div>
+                        Microsoft Office
+                    </div>
+                    <div class="software-details">
+                        ${officeInfo.installed ? `
+                            <strong>Versión:</strong> ${officeInfo.version || 'No detectada'}<br>
+                            <strong>Estado:</strong> ${officeInfo.activation_status}<br>
+                            ${officeInfo.products ? officeInfo.products.map(product => `
+                                <div class="license-item ${product.license_status.includes('LICENSED') ? '' : 'inactive'}">
+                                    ${product.name} - ${product.license_status}
+                                </div>
+                            `).join('') : ''}
+                        ` : 'No instalado'}
+                    </div>
+                </div>
+            `;
+
+            // Información de SolidWorks
+            const solidworksInfo = monitoringInfo.cad_info?.solidworks || {};
+            softwareHTML += `
+                <div class="software-section">
+                    <div class="software-title">
+                        <div class="software-icon solidworks-icon"></div>
+                        SolidWorks
+                    </div>
+                    <div class="software-details">
+                        ${solidworksInfo.installed ? `
+                            <strong>Versión:</strong> ${solidworksInfo.version || 'No detectada'}<br>
+                            <strong>Licencia:</strong> ${solidworksInfo.license_status}
+                        ` : 'No instalado'}
+                    </div>
+                </div>
+            `;
+
+            // Información de AutoCAD
+            const autocadInfo = monitoringInfo.cad_info?.autocad || {};
+            softwareHTML += `
+                <div class="software-section">
+                    <div class="software-title">
+                        <div class="software-icon autocad-icon"></div>
+                        AutoCAD
+                    </div>
+                    <div class="software-details">
+                        ${autocadInfo.installed ? `
+                            <strong>Versión:</strong> ${autocadInfo.version || 'No detectada'}<br>
+                            <strong>Licencia:</strong> ${autocadInfo.license_status}
+                        ` : 'No instalado'}
+                    </div>
+                </div>
+            `;
+
+            softwareHTML += '</div>';
+            return softwareHTML;
+        }
+
+        // Cargar datos al inicio
+        loadData();
+
+        // Actualizar automáticamente cada 30 segundos
+        refreshInterval = setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
