@@ -21,18 +21,18 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 2rem 0;
+            padding: 1rem 0;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.2rem;
         }
 
         .header p {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             opacity: 0.9;
         }
 
@@ -93,22 +93,72 @@
         .agent-card {
             border: 1px solid #e0e6ed;
             border-radius: 8px;
-            padding: 1.5rem;
             margin-bottom: 1.5rem;
             background: #fafbfc;
+            transition: all 0.3s ease;
         }
 
         .agent-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .agent-header:hover {
+            background-color: #f0f2f5;
+        }
+
+        .agent-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
         .agent-name {
             font-size: 1.3rem;
             font-weight: bold;
             color: #333;
+        }
+
+        .agent-id {
+            font-size: 0.85rem;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .agent-header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .collapse-icon {
+            font-size: 1.2rem;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .collapse-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .agent-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            border-top: 1px solid #e0e6ed;
+        }
+
+        .agent-details.expanded {
+            max-height: 1000px;
+        }
+
+        .agent-details-content {
+            padding: 1.5rem;
         }
 
         .agent-status {
@@ -215,6 +265,7 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
+            font-size: 1.2rem;
         }
 
         .refresh-btn:hover {
@@ -232,6 +283,16 @@
             text-align: center;
             padding: 3rem;
             color: #999;
+        }
+
+        .debug-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -277,6 +338,7 @@
         let refreshInterval;
 
         function formatDate(dateString) {
+            if (!dateString) return 'No disponible';
             const date = new Date(dateString);
             return date.toLocaleString('es-ES', {
                 year: 'numeric',
@@ -288,6 +350,7 @@
         }
 
         function isAgentOnline(lastSeen) {
+            if (!lastSeen) return false;
             const lastSeenDate = new Date(lastSeen);
             const now = new Date();
             const diffMinutes = (now - lastSeenDate) / (1000 * 60);
@@ -296,16 +359,20 @@
 
         async function loadData() {
             try {
-                // Cargar agentes
-                const agentsResponse = await fetch('/api/agents');
-                const agentsData = await agentsResponse.json();
+                console.log('Cargando datos...');
 
-                // Cargar datos de monitoreo
-                const monitoringResponse = await fetch('/api/backups');
-                const monitoringData = await monitoringResponse.json();
+                // Cargar estadísticas desde la base de datos
+                const statsResponse = await fetch('/api/statistics');
+                const statsData = await statsResponse.json();
+                console.log('Estadísticas:', statsData);
 
-                updateStats(agentsData, monitoringData);
-                updateAgentsDisplay(agentsData, monitoringData);
+                // Cargar historial de agentes desde la base de datos
+                const historyResponse = await fetch('/api/agents/history');
+                const historyData = await historyResponse.json();
+                console.log('Historial:', historyData);
+
+                updateStatsFromDB(statsData);
+                updateAgentsFromDB(historyData);
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
@@ -314,72 +381,67 @@
             }
         }
 
-        function updateStats(agentsData, monitoringData) {
-            const totalAgents = agentsData.agents.length;
-            let officeInstalls = 0;
-            let cadInstalls = 0;
-            let activeBackups = 0;
-
-            Object.values(monitoringData.monitoring_data || {}).forEach(data => {
-                if (data.office_info && data.office_info.installed) {
-                    officeInstalls++;
-                }
-                if (data.cad_info) {
-                    if (data.cad_info.solidworks && data.cad_info.solidworks.installed) cadInstalls++;
-                    if (data.cad_info.autocad && data.cad_info.autocad.installed) cadInstalls++;
-                }
-                if (data.backup_info && data.backup_info.status !== 'unknown') {
-                    activeBackups++;
-                }
-            });
-
-            document.getElementById('totalAgents').textContent = totalAgents;
-            document.getElementById('officeInstalls').textContent = officeInstalls;
-            document.getElementById('cadInstalls').textContent = cadInstalls;
-            document.getElementById('activeBackups').textContent = activeBackups;
+        function updateStatsFromDB(statsData) {
+            document.getElementById('totalAgents').textContent = statsData.active_agents || 0;
+            document.getElementById('officeInstalls').textContent = statsData.office_installs || 0;
+            document.getElementById('cadInstalls').textContent = statsData.cad_installs || 0;
+            document.getElementById('activeBackups').textContent = statsData.active_backups || 0;
         }
 
-        function updateAgentsDisplay(agentsData, monitoringData) {
+        function updateAgentsFromDB(historyData) {
             const container = document.getElementById('agentsContainer');
 
-            if (agentsData.agents.length === 0) {
-                container.innerHTML = '<div class="no-data">No hay agentes conectados</div>';
+            if (!historyData.agents || historyData.agents.length === 0) {
+                container.innerHTML = '<div class="no-data">No hay agentes registrados en la base de datos</div>';
                 return;
             }
 
-            const agentsHTML = agentsData.agents.map(agent => {
-                const monitoringInfo = monitoringData.monitoring_data[agent.agent_id] || {};
+            const agentsHTML = historyData.agents.map(agent => {
                 const isOnline = isAgentOnline(agent.last_seen);
 
                 return `
                     <div class="agent-card">
-                        <div class="agent-header">
-                            <div class="agent-name">${agent.hostname}</div>
-                            <div class="agent-status ${isOnline ? 'status-online' : 'status-offline'}">
-                                ${isOnline ? 'En línea' : 'Desconectado'}
+                        <div class="agent-header" onclick="toggleAgentDetails('${agent.agent_id}')">
+                            <div class="agent-header-left">
+                                <div>
+                                    <div class="agent-name">${agent.hostname || 'Agente Desconocido'}</div>
+                                    <div class="agent-id">${agent.agent_id}</div>
+                                </div>
+                            </div>
+                            <div class="agent-header-right">
+                                <div class="agent-status ${isOnline ? 'status-online' : 'status-offline'}">
+                                    ${isOnline ? 'En línea' : 'Desconectado'}
+                                </div>
+                                <div class="collapse-icon" id="icon-${agent.agent_id}">
+                                    ▼
+                                </div>
                             </div>
                         </div>
 
-                        <div class="agent-info">
-                            <div class="info-item">
-                                <div class="info-label">Sistema Operativo</div>
-                                <div class="info-value">${agent.os}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Dirección IP</div>
-                                <div class="info-value">${agent.ip}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Última Conexión</div>
-                                <div class="info-value">${formatDate(agent.last_seen)}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">ID del Agente</div>
-                                <div class="info-value" style="font-size: 0.8rem;">${agent.agent_id}</div>
+                        <div class="agent-details" id="details-${agent.agent_id}">
+                            <div class="agent-details-content">
+                                <div class="agent-info">
+                                    <div class="info-item">
+                                        <div class="info-label">Sistema Operativo</div>
+                                        <div class="info-value">${agent.operating_system || 'No detectado'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Dirección IP</div>
+                                        <div class="info-value">${agent.ip_address || 'No disponible'}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Última Conexión</div>
+                                        <div class="info-value">${formatDate(agent.last_seen)}</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Registrado</div>
+                                        <div class="info-value">${formatDate(agent.registered_at)}</div>
+                                    </div>
+                                </div>
+
+                                ${generateSoftwareInfoFromDB(agent)}
                             </div>
                         </div>
-
-                        ${generateSoftwareInfo(monitoringInfo)}
                     </div>
                 `;
             }).join('');
@@ -387,11 +449,24 @@
             container.innerHTML = agentsHTML;
         }
 
-        function generateSoftwareInfo(monitoringInfo) {
+        function toggleAgentDetails(agentId) {
+            const details = document.getElementById(`details-${agentId}`);
+            const icon = document.getElementById(`icon-${agentId}`);
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                details.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+
+        function generateSoftwareInfoFromDB(agent) {
             let softwareHTML = '<div class="software-grid">';
 
             // Información de Office
-            const officeInfo = monitoringInfo.office_info || {};
+            const officeInfo = agent.office;
             softwareHTML += `
                 <div class="software-section">
                     <div class="software-title">
@@ -399,11 +474,11 @@
                         Microsoft Office
                     </div>
                     <div class="software-details">
-                        ${officeInfo.installed ? `
+                        ${officeInfo && officeInfo.installed ? `
                             <strong>Versión:</strong> ${officeInfo.version || 'No detectada'}<br>
-                            <strong>Estado:</strong> ${officeInfo.activation_status}<br>
-                            ${officeInfo.products ? officeInfo.products.map(product => `
-                                <div class="license-item ${product.license_status.includes('LICENSED') ? '' : 'inactive'}">
+                            <strong>Estado:</strong> ${officeInfo.activation_status || 'Desconocido'}<br>
+                            ${officeInfo.products && officeInfo.products.length > 0 ? officeInfo.products.map(product => `
+                                <div class="license-item ${product.license_status && product.license_status.includes('LICENSED') ? '' : 'inactive'}">
                                     ${product.name} - ${product.license_status}
                                 </div>
                             `).join('') : ''}
@@ -413,7 +488,7 @@
             `;
 
             // Información de SolidWorks
-            const solidworksInfo = monitoringInfo.cad_info?.solidworks || {};
+            const solidworksInfo = agent.solidworks;
             softwareHTML += `
                 <div class="software-section">
                     <div class="software-title">
@@ -421,16 +496,16 @@
                         SolidWorks
                     </div>
                     <div class="software-details">
-                        ${solidworksInfo.installed ? `
+                        ${solidworksInfo && solidworksInfo.installed ? `
                             <strong>Versión:</strong> ${solidworksInfo.version || 'No detectada'}<br>
-                            <strong>Licencia:</strong> ${solidworksInfo.license_status}
+                            <strong>Licencia:</strong> ${solidworksInfo.license_status || 'Desconocido'}
                         ` : 'No instalado'}
                     </div>
                 </div>
             `;
 
             // Información de AutoCAD
-            const autocadInfo = monitoringInfo.cad_info?.autocad || {};
+            const autocadInfo = agent.autocad;
             softwareHTML += `
                 <div class="software-section">
                     <div class="software-title">
@@ -438,9 +513,9 @@
                         AutoCAD
                     </div>
                     <div class="software-details">
-                        ${autocadInfo.installed ? `
+                        ${autocadInfo && autocadInfo.installed ? `
                             <strong>Versión:</strong> ${autocadInfo.version || 'No detectada'}<br>
-                            <strong>Licencia:</strong> ${autocadInfo.license_status}
+                            <strong>Licencia:</strong> ${autocadInfo.license_status || 'Desconocido'}
                         ` : 'No instalado'}
                     </div>
                 </div>
