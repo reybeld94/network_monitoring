@@ -1,15 +1,4 @@
-function updateBackupsTable(agentsData) {
-            const tbody = document.getElementById('backupTableBody');
-
-            if (!agentsData || agentsData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="no-data">No registered agents</td></tr>';
-                return;
-            }
-
-            let rows = agentsData.map(agent => {
-                const isOnline = isAgentOnline(agent.last_seen);
-                const backup = agent.backup;
-                <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -313,6 +302,31 @@ function updateBackupsTable(agentsData) {
             color: #2c3e50;
             margin: 0 0 1rem 0;
         }
+
+        .software-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .software-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .status-icon {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .installed {
+            color: #28a745;
+        }
+
+        .not-installed {
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -464,9 +478,17 @@ function updateBackupsTable(agentsData) {
             }
         }
 
-        function updateStatsFromDB(statsData) {
-            // Stats removed from UI - keeping function for compatibility
-        }
+        function updateBackupsTable(agentsData) {
+            const tbody = document.getElementById('backupTableBody');
+
+            if (!agentsData || agentsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data">No registered agents</td></tr>';
+                return;
+            }
+
+            let rows = agentsData.map(agent => {
+                const isOnline = isAgentOnline(agent.last_seen);
+                const backup = agent.backup;
 
                 let backupStatus = 'none';
                 let backupStatusText = 'No backup';
@@ -621,30 +643,50 @@ function updateBackupsTable(agentsData) {
                             </span>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                            <div>
-                                <strong>Microsoft Office:</strong><br>
-                                ${agent.office && agent.office.installed ?
-                                    `✅ ${agent.office.version || 'Unknown version'}` :
-                                    '❌ Not installed'}
+                        <div class="software-grid">
+                            <div class="software-item">
+                                <span class="status-icon ${agent.office && agent.office.installed ? 'installed' : 'not-installed'}">
+                                    ${agent.office && agent.office.installed ? '✓' : '✗'}
+                                </span>
+                                <div>
+                                    <strong>Microsoft Office:</strong><br>
+                                    ${agent.office && agent.office.installed ?
+                                        `${agent.office.version || 'Unknown version'}` :
+                                        'Not installed'}
+                                </div>
                             </div>
-                            <div>
-                                <strong>SolidWorks:</strong><br>
-                                ${agent.solidworks && agent.solidworks.installed ?
-                                    `✅ ${agent.solidworks.version || 'Unknown version'}` :
-                                    '❌ Not installed'}
+                            <div class="software-item">
+                                <span class="status-icon ${agent.solidworks && agent.solidworks.installed ? 'installed' : 'not-installed'}">
+                                    ${agent.solidworks && agent.solidworks.installed ? '✓' : '✗'}
+                                </span>
+                                <div>
+                                    <strong>SolidWorks:</strong><br>
+                                    ${agent.solidworks && agent.solidworks.installed ?
+                                        `${agent.solidworks.version || 'Unknown version'}` :
+                                        'Not installed'}
+                                </div>
                             </div>
-                            <div>
-                                <strong>AutoCAD:</strong><br>
-                                ${agent.autocad && agent.autocad.installed ?
-                                    `✅ ${agent.autocad.version || 'Unknown version'}` :
-                                    '❌ Not installed'}
+                            <div class="software-item">
+                                <span class="status-icon ${agent.autocad && agent.autocad.installed ? 'installed' : 'not-installed'}">
+                                    ${agent.autocad && agent.autocad.installed ? '✓' : '✗'}
+                                </span>
+                                <div>
+                                    <strong>AutoCAD:</strong><br>
+                                    ${agent.autocad && agent.autocad.installed ?
+                                        `${agent.autocad.version || 'Unknown version'}` :
+                                        'Not installed'}
+                                </div>
                             </div>
-                            <div>
-                                <strong>Backup:</strong><br>
-                                ${agent.backup && agent.backup.status === 'found' ?
-                                    '✅ Configured' :
-                                    '❌ Not configured'}
+                            <div class="software-item">
+                                <span class="status-icon ${agent.backup && agent.backup.status === 'found' ? 'installed' : 'not-installed'}">
+                                    ${agent.backup && agent.backup.status === 'found' ? '✓' : '✗'}
+                                </span>
+                                <div>
+                                    <strong>Backup:</strong><br>
+                                    ${agent.backup && agent.backup.status === 'found' ?
+                                        'Configured' :
+                                        'Not configured'}
+                                </div>
                             </div>
                         </div>
                     </div>
