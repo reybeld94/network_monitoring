@@ -26,6 +26,13 @@ def monitoring_data():
     return jsonify({'status': 'ok'})
 
 
+@agents_bp.route('/history', methods=['GET'])
+def get_agents_history():
+    """Return stored monitoring data for all agents."""
+    agents = _data_service.get_agents_history()
+    return jsonify({'agents': agents})
+
+
 @agents_bp.route('/service-tag/<service_tag>', methods=['GET'])
 def get_agent_by_service_tag(service_tag):
     agent = _agent_service.get_by_service_tag(service_tag)
