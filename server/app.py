@@ -1,11 +1,26 @@
+"""Flask application entry point for the monitoring server."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
 from flask import Flask
-from .config.server_config import ServerConfig
-from .models import db
-from .api.agents import agents_bp
-from .api.hardware import hardware_bp
-from .api.software import software_bp
-from .api.statistics import statistics_bp
-from .api.search import search_bp
+
+# When this file is executed directly (e.g. ``python server/app.py``) the
+# package context is not set, causing relative imports to fail. To support both
+# direct execution and package imports we ensure the repository root is on the
+# module search path and then use absolute imports.
+if __package__ is None or __package__ == "":  # pragma: no cover - runtime convenience
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from server.config.server_config import ServerConfig
+from server.models import db
+from server.api.agents import agents_bp
+from server.api.hardware import hardware_bp
+from server.api.software import software_bp
+from server.api.statistics import statistics_bp
+from server.api.search import search_bp
 
 
 def create_app(config: ServerConfig | None = None) -> Flask:
