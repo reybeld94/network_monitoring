@@ -21,7 +21,11 @@ class MonitoringApp:
         )
 
     def open_settings(self):  # pragma: no cover - GUI
-        SettingsWindow()
+        def _run() -> None:
+            window = SettingsWindow()
+            window.mainloop()
+
+        threading.Thread(target=_run, daemon=True).start()
 
     def stop(self):  # pragma: no cover - GUI
         self.icon.stop()
