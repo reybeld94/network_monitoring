@@ -11,3 +11,11 @@ def test_app_factory():
     client = app.test_client()
     resp = client.get('/api/hardware/')
     assert resp.status_code == 200
+
+
+def test_dashboard_route():
+    app = create_app()
+    client = app.test_client()
+    resp = client.get('/')
+    assert resp.status_code == 200
+    assert b'System Monitor' in resp.data

@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from flask import Flask
+from flask import Flask, render_template
 
 # When this file is executed directly (e.g. ``python server/app.py``) the
 # package context is not set, causing relative imports to fail. To support both
@@ -37,6 +37,12 @@ def create_app(config: ServerConfig | None = None) -> Flask:
     app.register_blueprint(software_bp)
     app.register_blueprint(statistics_bp)
     app.register_blueprint(search_bp)
+    
+    @app.route("/")
+    @app.route("/dashboard")
+    def dashboard():
+        """Render the main dashboard page."""
+        return render_template("dashboard.html")
     return app
 
 
