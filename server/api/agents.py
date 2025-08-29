@@ -24,3 +24,25 @@ def monitoring_data():
         return jsonify({'error': 'system.agent_id is required'}), 400
     _data_service.store_monitoring_data(agent_id, data)
     return jsonify({'status': 'ok'})
+
+
+@agents_bp.route('/service-tag/<service_tag>', methods=['GET'])
+def get_agent_by_service_tag(service_tag):
+    agent = _agent_service.get_by_service_tag(service_tag)
+    if not agent:
+        return jsonify({'error': 'agent not found'}), 404
+    payload = {
+        'agent_id': agent.agent_id,
+        'hostname': agent.hostname,
+        'service_tag': agent.service_tag,
+        'manufacturer': agent.manufacturer,
+        'model': agent.model,
+        'detection_method': agent.detection_method,
+        'hardware_info': {
+            'service_tag': agent.service_tag,
+            'serial_number': agent.serial_number,
+            'manufacturer': agent.manufacturer,
+            'model': agent.model,
+        },
+    }
+    return jsonify(payload)

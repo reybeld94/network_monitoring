@@ -5,6 +5,7 @@ from .api.agents import agents_bp
 from .api.hardware import hardware_bp
 from .api.software import software_bp
 from .api.statistics import statistics_bp
+from .api.search import search_bp
 
 
 def create_app(config: ServerConfig | None = None) -> Flask:
@@ -20,6 +21,7 @@ def create_app(config: ServerConfig | None = None) -> Flask:
     app.register_blueprint(hardware_bp)
     app.register_blueprint(software_bp)
     app.register_blueprint(statistics_bp)
+    app.register_blueprint(search_bp)
     return app
 
 

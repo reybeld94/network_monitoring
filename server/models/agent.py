@@ -10,3 +10,14 @@ class Agent(db.Model):
     ip_address = db.Column(db.String(45))
     operating_system = db.Column(db.String(120))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Hardware information
+    service_tag = db.Column(db.String(50), index=True, nullable=True)
+    serial_number = db.Column(db.String(50), nullable=True)
+    manufacturer = db.Column(db.String(100), nullable=True)
+    model = db.Column(db.String(100), nullable=True)
+    detection_method = db.Column(db.String(50), nullable=True)
+
+    __table_args__ = (
+        db.Index("ix_agent_manufacturer_model", "manufacturer", "model"),
+    )
