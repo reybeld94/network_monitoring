@@ -7,11 +7,11 @@ class SettingsWindow(tk.Toplevel):
     """Simple configuration dialog allowing modification of the server URL."""
 
     def __init__(self, master=None, config: ClientConfig | None = None):
-        self._root: tk.Tk | None = None
+        self._root_window: tk.Tk | None = None
         if master is None:
-            self._root = tk.Tk()
-            self._root.withdraw()
-            master = self._root
+            self._root_window = tk.Tk()
+            self._root_window.withdraw()
+            master = self._root_window
         super().__init__(master)
         self.title("Client Settings")
         self.resizable(False, False)
@@ -28,7 +28,7 @@ class SettingsWindow(tk.Toplevel):
         self._close()
 
     def _close(self) -> None:
-        if self._root is not None:
-            self._root.destroy()
+        if self._root_window is not None:
+            self._root_window.destroy()
         else:
             self.destroy()
