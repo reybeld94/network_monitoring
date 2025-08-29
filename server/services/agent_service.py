@@ -14,5 +14,24 @@ class AgentService:
         agent.ip_address = ip_address
         agent.operating_system = data.get('os')
         agent.last_seen = datetime.utcnow()
+        agent.service_tag = data.get('service_tag')
+        agent.serial_number = data.get('serial_number')
+        agent.manufacturer = data.get('manufacturer')
+        agent.model = data.get('model')
+        agent.detection_method = data.get('detection_method')
         db.session.commit()
         return agent
+
+    def get_by_service_tag(self, service_tag: str) -> Agent | None:
+        return Agent.query.filter_by(service_tag=service_tag).first()
+
+    def search(self, query: str) -> list[Agent]:
+        pattern = f"%{query.replace('*', '%')}%"
+        return Agent.query.filter(
+            db.or_(
+                Agent.hostname.ilike(pattern),
+                Agent.service_tag.ilike(pattern),
+                Agent.serial_number.ilike(pattern),
+                Agent.model.ilike(pattern),
+            )
+        ).all()

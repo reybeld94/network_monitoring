@@ -35,3 +35,11 @@ Run tests with:
 ```bash
 pytest
 ```
+
+## Service Tag Detection
+
+The monitoring agent now attempts to detect hardware service tags and related
+serial numbers. Detection is performed using a priority of WMIC, PowerShell and
+finally the Windows registry. Detected information is sent to the server and can
+be queried via new API endpoints such as `/api/agents/service-tag/<tag>` or
+searched using `/api/search?q=<query>`.
